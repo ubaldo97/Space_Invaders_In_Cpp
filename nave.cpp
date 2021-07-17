@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<windows.h>
 #include<conio.h>
+#include<stdlib.h>
 
 //definimos los controles los cuales serán las flechas del teclado
 //con ayuda del código ascii
@@ -61,16 +62,18 @@ void pintar_limites(){
 class NAVE{
     int x,y;
     int corazones;
+    int vidas;
 
 public:
     //defininimos el constructor con una lista de inicialización por defecto
     //con el operador :, de esta manera evitamos tener que hacerlo por asignación
     //y reducimos lineas de código
-    NAVE(int _x, int _y, int _corazones):x(_x),y(_y),corazones(_corazones){}
+    NAVE(int _x, int _y, int _corazones, int _vidas):x(_x),y(_y),corazones(_corazones),vidas(_vidas){}
     void pintar();
     void mover();
     void borrar();
     void pintar_corazones();
+    void morir();
 };
 
 //Método que nos ayuda a dibujar la nave en consola
@@ -83,9 +86,9 @@ void NAVE::pintar(){
 //Método que nos ayuda a borrar la nave de la posicion anterior
 void NAVE::borrar(){
 
-    gotoxy(x,y);   printf("     ");
-    gotoxy(x,y+1); printf("     ");
-    gotoxy(x,y+2); printf("     ");
+    gotoxy(x,y);   printf("       ");
+    gotoxy(x,y+1); printf("       ");
+    gotoxy(x,y+2); printf("       ");
 }
 
 void NAVE::mover(){
@@ -104,6 +107,7 @@ void NAVE::mover(){
 }
 
 void NAVE::pintar_corazones(){
+    gotoxy(50,2); printf("Vidas %d",vidas);
     gotoxy(64,2); printf("Salud");
     gotoxy(70,2); printf("     ");
 
@@ -112,19 +116,66 @@ void NAVE::pintar_corazones(){
     }
 }
 
+void NAVE::morir(){
+    if(corazones==0){
+        borrar();
+        gotoxy(x,y);  printf("   **   ");
+        gotoxy(x,y+1);printf("  ****  ");
+        gotoxy(x,y+2);printf("   **   ");
+        Sleep(200);
+        borrar();
+        gotoxy(x,y);  printf(" * ** * ");
+        gotoxy(x,y+1);printf("  ****  ");
+        gotoxy(x,y+2);printf(" * ** * ");
+        Sleep(200);
+        vidas--;
+        corazones = 3;
+        pintar_corazones();
+        borrar();
+        pintar();
+
+    }
+}
+
+class ASTEROIDE{
+ int x,y;
+ public:
+     ASTEROIDE(int _x, int _y):x(_x),y(_y){}
+     void pintar();
+     void mover();
+};
+
+void ASTEROIDE::pintar(){
+    gotoxy(x,y); printf("%c",184);
+}
+
+void ASTEROIDE::mover(){
+    gotoxy(x,y); printf(" ");
+    y++;
+    if(y>32){
+        x = rand()%71 + 4;
+        y = 4;
+    }
+    pintar();
+}
+
 int main(){
 
     ocultarCursor(); // ocultamos el cursor de la consola para que no esté parpadeando
-    NAVE N(7,7,3); // definimos un objeto de la clase nave con las coordenadas deseadas
+    NAVE N(7,7,3,3); // definimos un objeto de la clase nave con las coordenadas deseadas
     N.pintar(); // llamamos al método que nos ayuda a pintar la nave en consola
     N.pintar_corazones();
     pintar_limites();
+
+    ASTEROIDE ast(10,4);
+
     // defini9mos una variable booleana para usarla como condición de escape del ciclo while
     bool game_over = false;
 
     //ciclo que mantiene la partida mientras no ocurra un game over
     while(!game_over){
-
+        ast.mover();
+        N.morir();
         N.mover(); // Método de la clase nave para detectar las teclas
         Sleep(30); // damos un tiempo de espera con el objetivo de no saturar la memoria
     }
