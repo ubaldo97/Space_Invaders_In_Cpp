@@ -74,6 +74,9 @@ public:
     void borrar();
     void pintar_corazones();
     void morir();
+    int getX(){return x;}
+    int getY(){return y;}
+    void salud(){corazones--;}
 };
 
 //Método que nos ayuda a dibujar la nave en consola
@@ -143,6 +146,7 @@ class ASTEROIDE{
      ASTEROIDE(int _x, int _y):x(_x),y(_y){}
      void pintar();
      void mover();
+     void detectar_choque(class NAVE &N);
 };
 
 void ASTEROIDE::pintar(){
@@ -159,6 +163,18 @@ void ASTEROIDE::mover(){
     pintar();
 }
 
+void ASTEROIDE::detectar_choque(class NAVE &N){
+    if(x >= N.getX() && x<=N.getX()+5 && y>=N.getY() && y<=N.getY()+2 ){
+        N.salud();
+        N.pintar_corazones();
+        N.borrar();
+        N.pintar();
+        x = rand()%71 + 4;
+        y = 4;
+    }
+
+}
+
 int main(){
 
     ocultarCursor(); // ocultamos el cursor de la consola para que no esté parpadeando
@@ -167,14 +183,16 @@ int main(){
     N.pintar_corazones();
     pintar_limites();
 
-    ASTEROIDE ast(10,4);
+    ASTEROIDE ast1(10,4),ast2(40,10), ast3(70,8);
 
     // defini9mos una variable booleana para usarla como condición de escape del ciclo while
     bool game_over = false;
 
     //ciclo que mantiene la partida mientras no ocurra un game over
     while(!game_over){
-        ast.mover();
+        ast1.mover(); ast1.detectar_choque(N);
+        ast2.mover(); ast2.detectar_choque(N);
+        ast3.mover(); ast3.detectar_choque(N);
         N.morir();
         N.mover(); // Método de la clase nave para detectar las teclas
         Sleep(30); // damos un tiempo de espera con el objetivo de no saturar la memoria
