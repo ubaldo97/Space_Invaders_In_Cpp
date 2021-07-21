@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<iostream>
 #include<windows.h>
 #include<conio.h>
 #include<stdlib.h>
@@ -24,6 +25,14 @@ void gotoxy(int x, int y){
     dwPos.Y = y;
 
     SetConsoleCursorPosition(hCon, dwPos);
+
+}
+
+void reproducir_sonido(int nEfecto){
+
+    if(nEfecto==1)PlaySound(TEXT("disparo.wav"),NULL,SND_ASYNC);
+    if(nEfecto==2)PlaySound(TEXT("Cubik2.wav"),NULL,SND_ASYNC);
+
 
 }
 
@@ -209,7 +218,6 @@ int main(){
     N.pintar(); // llamamos al método que nos ayuda a pintar la nave en consola
     N.pintar_corazones();
     pintar_limites();
-
     list<ASTEROIDE*> A;
     list<ASTEROIDE*>::iterator itA;
 
@@ -234,6 +242,7 @@ int main(){
             char tecla = getch();
             if(tecla=='a'){
                 B.push_back(new BALA(N.getX()+2,N.getY()-1));
+                reproducir_sonido(1);
 
             }
         }
@@ -278,7 +287,6 @@ int main(){
         N.mover(); // Método de la clase nave para detectar las teclas
         Sleep(30); // damos un tiempo de espera con el objetivo de no saturar la memoria
     }
-
     gotoxy(35,18); printf("Game Over");
     Sleep(3000);
     return 0;
