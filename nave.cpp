@@ -2,6 +2,8 @@
 #include<windows.h>
 #include<conio.h>
 #include<stdlib.h>
+#include<list>
+using namespace std;
 
 //definimos los controles los cuales serán las flechas del teclado
 //con ayuda del código ascii
@@ -76,6 +78,7 @@ public:
     void morir();
     int getX(){return x;}
     int getY(){return y;}
+    int getVidas(){return vidas;}
     void salud(){corazones--;}
 };
 
@@ -146,7 +149,9 @@ class ASTEROIDE{
      ASTEROIDE(int _x, int _y):x(_x),y(_y){}
      void pintar();
      void mover();
-     void detectar_choque(class NAVE &N);
+     void detectar_choque(NAVE &N);
+     int getX(){return x;}
+     int getY(){return y;}
 };
 
 void ASTEROIDE::pintar(){
@@ -163,7 +168,7 @@ void ASTEROIDE::mover(){
     pintar();
 }
 
-void ASTEROIDE::detectar_choque(class NAVE &N){
+void ASTEROIDE::detectar_choque(NAVE &N){
     if(x >= N.getX() && x<=N.getX()+5 && y>=N.getY() && y<=N.getY()+2 ){
         N.salud();
         N.pintar_corazones();
@@ -175,28 +180,106 @@ void ASTEROIDE::detectar_choque(class NAVE &N){
 
 }
 
+class BALA{
+int x,y;
+public:
+    BALA(int _x, int _y):x(_x),y(_y){}
+    int getX(){return x;}
+    int getY(){return y;}
+    void mover();
+    bool fuera();
+};
+
+void BALA::mover(){
+    gotoxy(x,y); printf(" ");
+    y--;
+    gotoxy(x,y); printf("*");
+}
+
+bool BALA::fuera(){
+
+    if(y==4)return true;
+    return false;
+}
+
 int main(){
 
     ocultarCursor(); // ocultamos el cursor de la consola para que no esté parpadeando
-    NAVE N(7,7,3,3); // definimos un objeto de la clase nave con las coordenadas deseadas
+    NAVE N(37,30,3,3); // definimos un objeto de la clase nave con las coordenadas deseadas
     N.pintar(); // llamamos al método que nos ayuda a pintar la nave en consola
     N.pintar_corazones();
     pintar_limites();
 
-    ASTEROIDE ast1(10,4),ast2(40,10), ast3(70,8);
+    list<ASTEROIDE*> A;
+    list<ASTEROIDE*>::iterator itA;
+
+    for(int i=0;i<5;i++){
+        A.push_back(new ASTEROIDE(rand()%75+3,rand()%5+4));
+    }
+
+    list<BALA*> B;
+    list<BALA*>::iterator it;
+
+
 
     // defini9mos una variable booleana para usarla como condición de escape del ciclo while
     bool game_over = false;
+    int puntos = 0;
 
     //ciclo que mantiene la partida mientras no ocurra un game over
     while(!game_over){
-        ast1.mover(); ast1.detectar_choque(N);
-        ast2.mover(); ast2.detectar_choque(N);
-        ast3.mover(); ast3.detectar_choque(N);
+
+    gotoxy(4,2); printf("Puntos   %d",puntos);
+        if(kbhit()){
+            char tecla = getch();
+            if(tecla=='a'){
+                B.push_back(new BALA(N.getX()+2,N.getY()-1));
+
+            }
+        }
+
+        for(it=B.begin(); it!= B.end();it++){
+            (*it)->mover();
+            if((*it)->fuera()){
+                gotoxy((*it)->getX(),(*it)->getY());printf(" ");
+                delete(*it);
+                it = B.erase(it);
+            }
+        }
+
+        for(itA = A.begin();itA!=A.end();itA++){
+            (*itA)->mover();
+            (*itA)->detectar_choque(N);
+        }
+
+         for(itA = A.begin();itA!=A.end();itA++){
+
+            for(it = B.begin();it!=B.end();it++){
+                if((*itA)->getX()==(*it)->getX() && (((*itA)->getY() +1 == (*it)->getY()) || ((*itA)->getY() == (*it)->getY())) ){
+
+                gotoxy((*it)->getX(),(*it)->getY()); printf(" ");
+                delete(*it);
+                it = B.erase(it);
+
+                A.push_back(new ASTEROIDE(rand()%74+3, 4));
+                gotoxy((*itA)->getX(),(*itA)->getY()); printf(" ");
+                delete(*itA);
+                itA = A.erase(itA);
+
+                puntos+=5;
+
+                }
+
+            }
+        }
+
+        if(N.getVidas()==0)game_over=true;
         N.morir();
         N.mover(); // Método de la clase nave para detectar las teclas
         Sleep(30); // damos un tiempo de espera con el objetivo de no saturar la memoria
     }
 
+    gotoxy(35,18); printf("Game Over");
+    Sleep(3000);
     return 0;
 }
